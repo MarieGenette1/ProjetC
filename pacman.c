@@ -1,14 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
-//#include <conio.h>
+#include <time.h>
 
-char plateau[21+1], nomfin[20];
-char player='0', pos, adv='X', debut, fin;
-int vie, tour=1, tourAdv, x, y, score, bonus;
+char plateau[60+1], nom[20];
+char joueur = 'C', pos, adv = 'O', adv2 = 'O', debut, fin;
+int vie, tour = 1, tourAdv, x, y, score, bonus;
 
 void clear(void)
 {
-    plateau[0]=plateau[1]=plateau[2]=plateau[3]=plateau[4]=plateau[5]=plateau[6]=plateau[7]=plateau[8]=plateau[9]=plateau[10]=plateau[11]=plateau[12]=plateau[13]=plateau[14]=plateau[15]=plateau[16]=plateau[17]=plateau[18]=plateau[19]=plateau[20]=' ';
+    for(int i = 0; i < 60; i++){
+        plateau[i] = ' ';
+    }
 }
 
 void affichegrille()
@@ -17,24 +19,14 @@ void affichegrille()
     printf("Votre score est de :%d\n\n",tour);
     printf("\n\n\n");
     printf("_____________\n");
-    printf("| | | | | | |\n");
-    printf("|%c|%c|%c|%c|%c|%c|\n",plateau[0],plateau[1],plateau[2],plateau[3],plateau[4],plateau[5]);
-    printf("|_|_|_|_|_|_|\n");
-    printf("|/////|_|///|\n");
-    printf("|/////|%c|///|\n",plateau[6]);
-    printf("|/////|_|///|\n");
-    printf("|/////|_|///|\n");
-    printf("|/////|%c|///|\n",plateau[7]);
-    printf("|/////|_|///|\n");
-    printf("|_|_|_|_|_|_|\n");
-    printf("|%c|%c|%c|%c|%c|%c|\n",plateau[8],plateau[9],plateau[10],plateau[11],plateau[12],plateau[13]);
-    printf("|_|_|_|_|_|_|\n");
-    printf("|///|_|/////|\n");
-    printf("|///|%c|/////|\n",plateau[14]);
-    printf("|///|_|/////|\n");
-    printf("|_|_|_|_|_|_|\n");
-    printf("|%c|%c|%c|%c|%c|%c]\n",plateau[15],plateau[16],plateau[17],plateau[18],plateau[19],plateau[20]);
-    printf("|_|_|_|_|_|_|\n");
+    printf("|%c|%c|%c|%c|%c|%c|%c|%c|%c|%c|\n", plateau[0], plateau[1], plateau[2], plateau[3], plateau[4], plateau[5], plateau[6], plateau[7], plateau[8], plateau[9]);
+    printf("|%c|%c|%c|%c|%c|%c|%c|%c|%c|%c|\n", plateau[10], plateau[11], plateau[12], plateau[13], plateau[14], plateau[15], plateau[16], plateau[17], plateau[18], plateau[19]);
+    printf("|%c|%c|%c|%c|%c|%c|%c|%c|%c|%c|\n",plateau[20],plateau[21],plateau[22],plateau[23],plateau[24],plateau[25],plateau[26],plateau[27],plateau[28],plateau[29]);
+    printf("|%c|%c|%c|%c|%c|%c|%c|%c|%c|%c|\n",plateau[30],plateau[31],plateau[32],plateau[33],plateau[34],plateau[35],plateau[36],plateau[37],plateau[38],plateau[39]);
+    printf("|%c|%c|%c|%c|%c|%c|%c|%c|%c|%c|\n",plateau[40],plateau[41],plateau[42],plateau[43],plateau[44],plateau[45],plateau[46],plateau[47],plateau[48],plateau[49]);
+    printf("|%c|%c|%c|%c|%c|%c|%c|%c|%c|%c|\n",plateau[50],plateau[51],plateau[52],plateau[53],plateau[54],plateau[55],plateau[56],plateau[57],plateau[58],plateau[59]);
+    printf("_____________\n");
+
 }
 
 void updatePlayer()
@@ -124,6 +116,7 @@ void AdvPos()
     //determiner la position de DarkVador en fonction de son tour
     switch(tourAdv)
     {
+
         case 1:		plateau[20]=adv;	break;
         case 2:		plateau[19]=adv;	break;
         case 3:		plateau[18]=adv;	break;
@@ -314,23 +307,25 @@ int main (void)
 {
 
     //sommaire avec description
-    printf("                     ________________________________\n");
-    printf("                     |          ___________         |\n");
-    printf("                     |         |           |        |\n");
-    printf("                     |         |  TPacMan  |        |\n");
-    printf("                     |         |___________|        |\n");
-    printf("                     |______________________________|\n\n\n");
+    printf("                     88888b.  8888b.  .d8888b88888b.d88b.  8888b. 88888b.  \n");
+    printf("                     888 \"88b    \"88bd88P\"   888 \"888 \"88b    \"88b888 \"88b \n");
+    printf("                     888  888.d888888888     888  888  888.d888888888  888 \n");
+    printf("                     888 d88P888  888Y88b.   888  888  888888  888888  888 \n");
+    printf("                     88888P " "  Y888888 \"Y8888P888  888  888\"Y888888888  888 \n");
+    printf("                     888                                                   \n");
+    printf("                     888                                                   \n");
+    printf("                     888 \n");
 
     printf("          Appuyer sur 'q' pour aller a gauche.\n");
     printf("                 -sur 'z' pour aller en haut.\n");
     printf("                 -sur 's' pour aller en bas.\n");
     printf("                 -sur 'd' pour aller a droite.\n\n");
 
-    printf("Chasseur    -> 'X'\n");
-    printf("Joueur      -> '0'\n");
-    printf("Objectif    -> ']'\n\n");
+    printf("Fantome1    -> 'O'\n");
+    printf("Fantome2    -> 'O'\n");
+    printf("Pacman      -> 'C'\n");
 
-    printf("Votre but en tant que joueur est d'atteindre l'objectif sans vous faire prendre par le chasseur.\n");
+    printf("Votre but est de manger toutes les étoiles, bonne chance!\n");
 
     //debut de la boucle du jeu
     do
@@ -339,10 +334,8 @@ int main (void)
         if(tour==1)
         {
             printf("\nEntrez votre nom puis appuyez sur Entree pour commencer :\n");
-            fgets(nomfin, 19, stdin);
+            fgets(nom, 19, stdin);
 
-            plateau[3]=player;
-            plateau[20]=adv;
             bonus=0;
             x=6; y=4;
             tourAdv=1;
@@ -350,10 +343,25 @@ int main (void)
         }
 
         //affichage de la grille de jeu
-        affichegrille();
         clear();
+        plateau[3] = joueur;
+        plateau[20] = adv;
+        plateau[59] = adv2;
 
-        //determiner la boucle du tour de DarkVador
+        int etoiles = 0;
+        srand( time( NULL ) );
+        while(etoiles < 20){
+            int randomValue = rand() % 60;
+            printf("%d\n", randomValue);
+            if(plateau[randomValue] == ' '){
+                plateau[randomValue] = '*';
+                etoiles ++;
+            }
+        }
+
+        affichegrille();
+
+        //determiner la boucle du tour des fantomes
         tourAdv++;
         AdvPos();
 
@@ -379,53 +387,18 @@ int main (void)
 
     // si non alors le joueur a perdu
     // system("CLS");
-    if(bonus==0)	printf("\n\nLe Chasseur a ete plus ruse que vous, %s... Vous avez perdu.\n\n", nomfin);
+    if(bonus==0)	printf("\n\nLe Chasseur a ete plus ruse que vous, %s... Vous avez perdu.\n\n", nom);
 
     //si oui alors le joueur a gagne
     if(bonus==50)
     {
         // system("CLS");
-        printf("\n\n%s a atteint l'objectif. Vous remportez la victoire.\nVous etes acclame par votre public !\n\n", nomfin);
+        printf("\n\n%s a atteint l'objectif. Vous remportez la victoire.\nVous etes acclame par votre public !\n\n", nom);
+        printf("%s, votre score est de : %d\n\n", (nom), score);
         system("PAUSE");
         system("CLS");
-
-        //evaluation du niveau du joueur en fonction du score
-        if(score<150)
-        {
-            printf("______________________\n");
-            printf("|                     |\n");
-            printf("| Vous voila Apprenti |\n");
-            printf("|_____________________|\n\n");
-            printf("Vous pouvez faire mieux, mais c'est un debut !\n\n");
-            printf("%s, votre score est de : %d\n\n", (nomfin), score);
-        }
-        if(score>150&&score<200)
-        {
-            printf("____________________\n");
-            printf("|                   |\n");
-            printf("| Vous voila Pilote |\n");
-            printf("|___________________|\n\n");
-            printf("C'est de mieux en mieux. Faites encore des efforts, vous serez encore meilleur.\n\n");
-            printf("%s, votre score est de : %d\n\n", (nomfin), score);
-        }
-        if(score>200&&bonus==50)
-        {
-            printf("________________________\n");
-            printf("|                       |\n");
-            printf("|  Vous voila Empereur  |\n");
-            printf("|_______________________|\n\n");
-            printf("Mes felicitations, vous etes desormais le maitre inconteste des lieux !\n\n");
-            printf("%s, votre score est de : %d\n\n", (nomfin), score);
-        }
     }
 
     system("PAUSE");
-
-    //affichage des credits et des mentions legales
-    system("CLS");
-    printf("TPacMan, v.1.0,\nStudios Tastalian\nhttp://tastalian.free.fr\n\n");
-    printf("A partir de S-W du Studio Amanga\nhttp://studioamanga.free.fr\n");
-
-    // system("PAUSE"); // Pas n�cessaire si compil� par Visual C++
     return 0;
 }
