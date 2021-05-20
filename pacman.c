@@ -6,7 +6,6 @@ char plateau[60+1], nom[20];
 char joueur = 'C', pos, adv = 'O', adv2 = 'O', debut, fin;
 int vie, tour = 0, tourAdv, posJoueur, posFant1, posFant2, score, bonus;
 
-
 void videGrille(void)
 {
     for(int i = 0; i < 60; i++){
@@ -56,26 +55,26 @@ void mouvementFantome1()
         //va en haut
         if (randomAdv == 0 && posFant1 > 10) {
             plateau[posFant1 - 10] = adv;
-            posFant1 = posFant1 - 10;
             plateau[posFant1] = ' ';
+            posFant1 = posFant1 - 10;
             aBouge++;
         //va à droite
         } else if (randomAdv == 1 && posFant1 %10 < 9) {
             plateau[posFant1 + 1] = adv;
-            posFant1 = posFant1 + 1;
             plateau[posFant1] = ' ';
+            posFant1 = posFant1 + 1;
             aBouge++;
         //va en bas
         } else if (randomAdv == 2 && posFant1 < 50) {
             plateau[posFant1 + 10] = adv;
-            posFant1 = posFant1 + 10;
             plateau[posFant1] = ' ';
+            posFant1 = posFant1 + 10;
             aBouge++;
         //va à gauche
         } else if (randomAdv == 3 && posFant1 %10 != 0) {
             plateau[posFant1 - 1] = adv;
-            posFant1 = posFant1 - 1;
             plateau[posFant1] = ' ';
+            posFant1 = posFant1 - 1;
             aBouge++;
         }
     }
@@ -93,27 +92,27 @@ void mouvementFantome2()
         int randomAdv = rand() % 4;
         //va en haut
         if (randomAdv == 0 && posFant2 > 10) {
-            plateau[posFant1 - 10] = adv;
+            plateau[posFant2 - 10] = adv2;
+            plateau[posFant2] = ' ';
             posFant2 = posFant2 - 10;
-            plateau[posFant1] = ' ';
             aBouge++;
             //va à droite
         } else if (randomAdv == 1 && posFant2 %10 < 9) {
-            plateau[posFant1 + 1] = adv;
+            plateau[posFant2 + 1] = adv2;
+            plateau[posFant2] = ' ';
             posFant2 = posFant2 + 1;
-            plateau[posFant1] = ' ';
             aBouge++;
             //va en bas
         } else if (randomAdv == 2 && posFant2 < 50) {
-            plateau[posFant1 + 10] = adv;
+            plateau[posFant2 + 10] = adv2;
+            plateau[posFant2] = ' ';
             posFant2 = posFant2 + 10;
-            plateau[posFant1] = ' ';
             aBouge++;
             //va à gauche
         } else if (randomAdv == 3 && posFant2 %10 != 0) {
-            plateau[posFant1 - 1] = adv;
+            plateau[posFant2 - 1] = adv2;
+            plateau[posFant2] = ' ';
             posFant2 = posFant2 - 1;
-            plateau[posFant1] = ' ';
             aBouge++;
         }
     }
