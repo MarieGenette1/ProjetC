@@ -13,29 +13,25 @@
 #define EXIT "exit"
 
 char plateau[60 + 1], nom[20];
-char joueur = 'C', pos, adv = 'O', adv2 = 'O', debut, fin, direction;
+char joueur = 'C', pos, adv = 'O', adv2 = 'O', debut, fin;
 int vie, tour = 0, tourAdv, posJoueur, posFant1, posFant2, score, bonus;
 
-void videGrille(void) {
-    for (int i = 0; i < 60; i++) {
-        plateau[i] = ' ';
-    }
-}
 
 void lireMessage(char tampon[]) {
     printf("Entrez une direction : \n");
-    scanf("%s", tampon);
-    pos = *tampon;
-    printf("%s\n", &pos);  //ok
+    fgets(tampon, MAX_BUFFER, stdin);
+    strtok(tampon, "\n");
+    pos = tampon[0];
+
     while (pos != 'z' && pos != 'q' && pos != 's' && pos != 'd') {
         printf("Veuillez entrer une direction valide \n");
         printf("Entrez une direction : \n");
         scanf(" %c", &pos);
     }
-    strtok(tampon, "\n");
+
 }
 
-void afficheGrille() {
+void afficheGrille(char *plateau) {
     system("clear");
     printf("Votre score est de :%d\n", tour);
     printf("_____________\n");
@@ -58,34 +54,6 @@ void afficheGrille() {
 
 }
 
-void initialisationGrille() {
-    printf("\nEntrez votre nom puis appuyez sur Entree pour commencer :\n");
-    fgets(nom, 19, stdin);
-
-    bonus = 0;
-    posJoueur = 3;
-    posFant1 = 20;
-    posFant2 = 59;
-
-    //affichage de la grille de jeu
-    videGrille();
-    plateau[3] = joueur;
-    plateau[20] = adv;
-    plateau[59] = adv2;
-
-    int etoile = 0;
-    srand(time(NULL));
-    while (etoile < 20) {
-        int randomValeur = rand() % 61;
-        if (plateau[randomValeur] == ' ') {
-            plateau[randomValeur] = '*';
-            etoile++;
-        }
-    }
-
-    afficheGrille();
-}
-
 int testQuitter(char tampon[]) {
     return strcmp(tampon, EXIT) == 0;
 }
@@ -96,7 +64,6 @@ int main(int argc, char const *argv[]) {
     struct sockaddr_in coordonneesServeur;
     int longueurAdresse;
     char tampon[MAX_BUFFER];
-    char direction;
     vie = 1;
 
     fdSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -141,61 +108,47 @@ int main(int argc, char const *argv[]) {
 
     printf("Votre but est de manger toutes les étoiles, bonne chance!\n");
 
+    printf("\nEntrez votre nom puis appuyez sur Entree pour commencer :\n");
+    fgets(nom, 19, stdin);
+
     //nbRecu = recv(fdSocket, tampon, MAX_BUFFER, 0);
     //tampon[nbRecu] = vie;
 
-    while (vie == 1) {
+    while (1) {
 
         //nbRecu = recv(fdSocket, tampon, MAX_BUFFER, 0);
         //tampon[0] = vie;
 
-        //initialisation premier tour
-        if (tour == 0) {
-            initialisationGrille();
+        //partie reception et affichage grille
+        nbRecu = recv(fdSocket, tampon, MAX_BUFFER, 0);
 
-            lireMessage(tampon);
+        strcpy(plateau, tampon);
 
-            printf("pq ça va pas\n");
-            fflush(stdout);
+        if (nbRecu > 0) {
+            tampon[nbRecu] = 0;
 
             if (testQuitter(tampon)) {
-                printf("ça marche?\n");
-                fflush(stdout);
-                send(fdSocket, tampon, strlen(tampon), 0);
                 break; // on quitte la boucle
             }
-
-            send(fdSocket, tampon, strlen(tampon), 0);
-
-            printf("ça marche pas\n");
-            fflush(stdout);
-        } else {
-            printf("hjfkfkf\n");
-            fflush(stdout);
-            fflush(stdin);
-            nbRecu = recv(fdSocket, tampon, strlen(tampon), 0); //on attend la réponse du serveur
-
-            printf("cvbn\n");
-            fflush(stdout);
-
-            if (nbRecu > 0) {
-                printf("%s", tampon);
-                tampon[nbRecu] = 0;
-                printf("%s", tampon);
-                fflush(stdout);
-                plateau[nbRecu] = tampon[nbRecu];
-
-                if (testQuitter(tampon)) {
-                    break; // on quitte la boucle
-                }
-            }
-
-            afficheGrille();
-
-            lireMessage(tampon);
-
-            send(fdSocket, tampon, strlen(tampon), 0);
         }
+
+        if (nbRecu < 0) {
+            printf("Erreur de réception\n");
+        }
+
+        afficheGrille(plateau);
+
+        //partie lecture dir et envoie
+
+        lireMessage(tampon);
+
+        if (testQuitter(tampon)) {
+            break; // on quitte la boucle
+        }
+
+        // on envoie le message au serveur
+        printf("tampon : %s", tampon);
+        send(fdSocket, tampon, strlen(tampon), 0);
 
         tour++;
 

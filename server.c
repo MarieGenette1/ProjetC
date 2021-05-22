@@ -16,7 +16,11 @@
 
 char plateau[60+1], nom[20];
 char joueur = 'C', pos, adv = 'O', adv2 = 'O', debut, fin;
-int vie=1, tour = 0, posJoueur=3, posFant1=20, posFant2=59, score=0, bonus=0, adv1e = '0', adv2e = '0', nbetoiles, nbClients = 0;
+int vie=1, tour = 0, posJoueur, posFant1, posFant2, score, bonus, adv1e = '0', adv2e = '0', nbetoiles, nbClients = 0;
+
+int testQuitter(char tampon[]) {
+    return strcmp(tampon, EXIT) == 0;
+}
 
 void videGrille(void) {
     for (int i = 0; i < 60; i++) {
@@ -24,22 +28,45 @@ void videGrille(void) {
     }
 }
 
-int testQuitter(char tampon[]) {
-    return strcmp(tampon, EXIT) == 0;
+void initialisationGrille() {
+
+    bonus = 0;
+    posJoueur = 3;
+    posFant1 = 20;
+    posFant2 = 59;
+
+    //affichage de la grille de jeu
+    videGrille();
+    plateau[3] = joueur;
+    plateau[20] = adv;
+    plateau[59] = adv2;
+
+    int etoile = 0;
+    srand(time(NULL));
+    while (etoile < 20) {
+        int randomValeur = rand() % 61;
+        if (plateau[randomValeur] == ' ') {
+            plateau[randomValeur] = '*';
+            etoile++;
+        }
+    }
 }
 
-void mouvementJoueur() {
+void mouvementJoueur(int posJoueur) {
+
     //on nettoie l'ancien pacman
-    printf("in mvt j\n");
-    fflush(stdout);
+
     for (int i = 0; i < 60; i++) {
         if (plateau[i] == joueur) {
             plateau[i] = ' ';
         }
     }
+
     //on place le nouveau
-    if (plateau[posJoueur] == plateau[posFant1] || plateau[posJoueur] == plateau[posFant2]) {
+    if (posJoueur == posFant1 || posJoueur == posFant2) {
         vie--;
+        printf("vie--\n");
+        fflush(stdout);
     } else if (plateau[posJoueur] == ' ') {
         plateau[posJoueur] = joueur;
     } else if (plateau[posJoueur] == '*') {
@@ -50,26 +77,22 @@ void mouvementJoueur() {
             bonus = bonus + 50;
             vie--;
         }
-
     }
-    printf("%c", plateau[4]);
 }
 
 void updatePosFantome1(int deplacement) {
-    posFant1 = posFant1 + deplacement;
     plateau[posFant1] = plateau[posFant1 + deplacement] == ' ' ? adv : adv1e;
+    posFant1 = posFant1 + deplacement;
+
 }
 
 void updatePosFantome2(int deplacement) {
-    posFant2 = posFant2 + deplacement;
     plateau[posFant2] = plateau[posFant2 + deplacement] == ' ' ? adv2 : adv2e;
+    posFant2 = posFant2 + deplacement;
 }
 
-void mouvementFantome1() {
+void mouvementFantome1(int posFant1) {
     //determiner la position du fantome
-    printf("in mvt f1\n");
-    fflush(stdout);
-
     srand(time(NULL));
 
     int aBouge = 0;
@@ -130,12 +153,9 @@ void mouvementFantome1() {
 
 }
 
-void mouvementFantome2() {
+void mouvementFantome2(int pos) {
     //determiner la position du fantome
     srand(time(NULL));
-    printf("in mvt f2\n");
-    fflush(stdout);
-
 
     int aBouge = 0;
 
@@ -143,8 +163,6 @@ void mouvementFantome2() {
 
         int randomAdv2 = rand() % 4;
 
-        printf("random: %d\n", randomAdv2);
-        fflush(stdout);
         //on nettoie l'ancien fantome2
 
         if (plateau[posFant2] == adv2) {
@@ -194,8 +212,6 @@ void mouvementFantome2() {
                 break;
         }
     }
-    printf("out mvt f2\n");
-    fflush(stdout);
 }
 
 void Collisions() {
@@ -259,12 +275,26 @@ int main(int argc, char const *argv[]) {
         if ((pid = fork()) == 0) {
             close(fdSocketAttente);
 
-            while (1) {
+            while (vie == 1) {
+
+                if(tour==0) initialisationGrille();
+
+                //partie envoie de la grille
+                strcpy(tampon, plateau);
+
+                if (testQuitter(tampon)) {
+                    break; // on quitte la boucle
+                }
+
+                send(fdSocketCommunication, tampon, strlen(tampon), 0);
+
                 //tampon[0] = 1;
                 //send(fdSocketCommunication, tampon, strlen(tampon), 0);
                 //on attend le message du client
-                //la fonction recv est bloquante<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                //la fonction recv est bloquante<<<<<<<<<<<<<<<<<<<<<<attente direction
                 nbRecu = recv(fdSocketCommunication, tampon, MAX_BUFFER, 0);
+
+
 
                 if (nbRecu > 0) {
                     tampon[nbRecu] = 0;
@@ -273,11 +303,7 @@ int main(int argc, char const *argv[]) {
                     if (testQuitter(tampon)) {
                         break; // on quitte la boucle
                     }
-                    printf("ccccc\n");
                 }
-
-                printf("jnkvnekrbv\n");
-                fflush(stdout);
 
                 if (nbRecu < 0) {
                     printf("Erreur de réception\n");
@@ -286,21 +312,17 @@ int main(int argc, char const *argv[]) {
                 //modification de la position du joueur
 
                 pos = tampon[nbRecu-1];
-                printf("%s, %d", tampon, nbRecu);
+                printf("%s\n", tampon);
                 fflush(stdout);
 
                 if (posJoueur % 10 != 0) {
                     if (pos == 'q') {
                         posJoueur--;
-                        printf("joie");
-                        fflush(stdout);
                     }
                 }
                 if (posJoueur % 10 != 9) {
                     if (pos == 'd') {
                         posJoueur++;
-                        printf("pate\n");
-                        fflush(stdout);
                     }
                 }
                 if (posJoueur > 9) {
@@ -310,35 +332,29 @@ int main(int argc, char const *argv[]) {
                     if (pos == 's') posJoueur = posJoueur + 10;
                 }
 
-                mouvementJoueur();
+                mouvementJoueur(posJoueur);
                 //vie = tampon[0];
                 //send(fdSocketCommunication, tampon, strlen(tampon), 0);
 
-                mouvementFantome2();
-                mouvementFantome1();
+
+                mouvementFantome1(posFant1);
+                mouvementFantome2(posFant2);
 
                 //evaluation des points et de la mort eventuelle
                 Collisions();
                 //vie = tampon[0];
                 //send(fdSocketCommunication, tampon, strlen(tampon), 0);
 
-                printf("nouveau\n");
-                fflush(stdout);
-                printf("%c", plateau[4]);
-                fflush(stdout);
-                *tampon = *plateau;
+                strcpy(tampon,plateau);
 
                 if (testQuitter(tampon)) {
                     send(fdSocketCommunication, tampon, strlen(tampon), 0);
                     break; // on quitte la boucle
                 }
-                printf("avant d'envoyer\n");
-                fflush(stdout);
 
                 send(fdSocketCommunication, tampon, strlen(tampon), 0);
 
-                printf("%s\n", tampon);
-                fflush(stdout);
+                tour++;
             }
 
             // determination du score avec presence ou non du bonus
