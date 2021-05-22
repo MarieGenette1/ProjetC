@@ -14,9 +14,9 @@
 #define EXIT "exit"
 #define MAX_CLIENTS 3
 
-char plateau[60 + 1], nom[20];
+char plateau[60+1], nom[20];
 char joueur = 'C', pos, adv = 'O', adv2 = 'O', debut, fin;
-int vie, tour = 0, tourAdv, posJoueur, posFant1, posFant2, score, bonus, adv1e = '0', adv2e = '0', nbetoiles, nbClients = 0;
+int vie=1, tour = 0, posJoueur=3, posFant1=20, posFant2=59, score=0, bonus=0, adv1e = '0', adv2e = '0', nbetoiles, nbClients = 0;
 
 void videGrille(void) {
     for (int i = 0; i < 60; i++) {
@@ -30,8 +30,10 @@ int testQuitter(char tampon[]) {
 
 void mouvementJoueur() {
     //on nettoie l'ancien pacman
+    printf("in mvt j\n");
+    fflush(stdout);
     for (int i = 0; i < 60; i++) {
-        if (plateau[i] == 'C') {
+        if (plateau[i] == joueur) {
             plateau[i] = ' ';
         }
     }
@@ -50,10 +52,23 @@ void mouvementJoueur() {
         }
 
     }
+    printf("%c", plateau[4]);
+}
+
+void updatePosFantome1(int deplacement) {
+    posFant1 = posFant1 + deplacement;
+    plateau[posFant1] = plateau[posFant1 + deplacement] == ' ' ? adv : adv1e;
+}
+
+void updatePosFantome2(int deplacement) {
+    posFant2 = posFant2 + deplacement;
+    plateau[posFant2] = plateau[posFant2 + deplacement] == ' ' ? adv2 : adv2e;
 }
 
 void mouvementFantome1() {
     //determiner la position du fantome
+    printf("in mvt f1\n");
+    fflush(stdout);
 
     srand(time(NULL));
 
@@ -70,65 +85,47 @@ void mouvementFantome1() {
             plateau[posFant1] = '*';
         }
 
-
-        //va en haut
-        if (randomAdv1 == 0 && posFant1 > 10 && posFant1 - 10 != posFant2) {
-            if (plateau[posFant1 - 10] == ' ') {
-                posFant1 = posFant1 - 10;
-                plateau[posFant1] = adv;
+        switch (randomAdv1) {
+            case 0: // go up
+                if (posFant1 < 10 || posFant1 - 10 == posFant2) { // cas d'erreur
+                    break;
+                }
+                updatePosFantome1(10);
                 aBouge++;
-
-            } else if (plateau[posFant1] - 10 == '*') {
-                posFant1 = posFant1 - 10;
-                plateau[posFant1] = adv1e;
+                printf("abouge\n");
+                fflush(stdout);
+                break;
+            case 1: //go right
+                if (posFant1 % 10 == 9 || posFant1 + 1 == posFant2) {
+                    break;
+                }
+                updatePosFantome1(1);
                 aBouge++;
-            }
-
-
-            //va à droite
-        } else if (randomAdv1 == 1 && posFant1 % 10 < 9 && posFant1 + 1 != posFant2) {
-            if (plateau[posFant1 + 1] == ' ') {
-                posFant1 = posFant1 + 1;
-                plateau[posFant1] = adv;
-
+                printf("abouge\n");
+                fflush(stdout);
+                break;
+            case 2: //go down
+                if (posFant1 >= 50 || posFant1 + 10 == posFant2) {
+                    break;
+                }
+                updatePosFantome1(-10);
                 aBouge++;
-
-            } else if (plateau[posFant1] + 1 == '*') {
-                posFant1 = posFant1 + 1;
-                plateau[posFant1] = adv1e;
+                printf("abouge\n");
+                fflush(stdout);
+                break;
+            case 3: //go left
+                if (posFant1 % 10 == 0 && posFant1 - 1 == posFant2) {
+                    break;
+                }
+                updatePosFantome1(-1);
                 aBouge++;
-            }
-
-
-
-            //va en bas
-        } else if (randomAdv1 == 2 && posFant1 < 50 && posFant1 + 10 != posFant2) {
-            if (plateau[posFant1 + 10] == ' ') {
-                posFant1 = posFant1 + 10;
-                plateau[posFant1] = adv;
-
-                aBouge++;
-
-            } else if (plateau[posFant1] + 10 == '*') {
-                posFant1 = posFant1 + 10;
-                plateau[posFant1] = adv1e;
-                aBouge++;
-
-            }
-
-            //va à gauche
-        } else if (randomAdv1 == 3 && posFant1 % 10 != 0 && posFant1 - 1 != posFant2) {
-            if (plateau[posFant1 - 1] == ' ') {
-                posFant1 = posFant1 - 1;
-                plateau[posFant1] = adv;
-                aBouge++;
-
-            } else if (plateau[posFant1] - 1 == '*') {
-                posFant1 = posFant1 - 1;
-                plateau[posFant1] = adv1e;
-                aBouge++;
-            }
+                printf("abouge\n");
+                fflush(stdout);
+                break;
+            default:
+                break;
         }
+
     }
 
 }
@@ -136,6 +133,9 @@ void mouvementFantome1() {
 void mouvementFantome2() {
     //determiner la position du fantome
     srand(time(NULL));
+    printf("in mvt f2\n");
+    fflush(stdout);
+
 
     int aBouge = 0;
 
@@ -143,6 +143,8 @@ void mouvementFantome2() {
 
         int randomAdv2 = rand() % 4;
 
+        printf("random: %d\n", randomAdv2);
+        fflush(stdout);
         //on nettoie l'ancien fantome2
 
         if (plateau[posFant2] == adv2) {
@@ -151,69 +153,49 @@ void mouvementFantome2() {
             plateau[posFant2] = '*';
         }
 
-
-        //va en haut
-        if (randomAdv2 == 0 && posFant2 > 10 && posFant2 - 10 != posFant1) {
-            if (plateau[posFant2 - 10] == ' ') {
-                posFant2 = posFant2 - 10;
-                plateau[posFant2] = adv2;
+        switch (randomAdv2) {
+            case 0: // go up
+                if (posFant2 < 10 || posFant2 - 10 == posFant1) { // cas d'erreur
+                    break;
+                }
+                updatePosFantome2(10);
                 aBouge++;
-
-            } else if (plateau[posFant2] - 10 == '*') {
-                posFant2 = posFant2 - 10;
-                plateau[posFant2] = adv2e;
+                printf("abouge\n");
+                fflush(stdout);
+                break;
+            case 1: //go right
+                if (posFant2 % 10 == 9 || posFant2 + 1 == posFant1) {
+                    break;
+                }
+                updatePosFantome2(1);
                 aBouge++;
-            }
-
-
-            //va à droite
-        } else if (randomAdv2 == 1 && posFant2 % 10 < 9 && posFant2 + 1 != posFant1) {
-            if (plateau[posFant2 + 1] == ' ') {
-                posFant2 = posFant2 + 1;
-                plateau[posFant2] = adv2;
+                printf("abouge\n");
+                fflush(stdout);
+                break;
+            case 2: //go down
+                if (posFant2 >= 50 || posFant2 + 10 == posFant1) {
+                    break;
+                }
+                updatePosFantome2(-10);
                 aBouge++;
-
-            } else if (plateau[posFant2] + 1 == '*') {
-                posFant2 = posFant2 + 1;
-                plateau[posFant2] = adv2e;
+                printf("abouge\n");
+                fflush(stdout);
+                break;
+            case 3: //go left
+                if (posFant2 % 10 == 0 && posFant2 - 1 == posFant1) {
+                    break;
+                }
+                updatePosFantome2(-1);
                 aBouge++;
-
-            }
-
-
-
-            //va en bas
-        } else if (randomAdv2 == 2 && posFant2 < 50 && posFant2 + 10 != posFant1) {
-            if (plateau[posFant2 + 10] == ' ') {
-                posFant2 = posFant2 + 10;
-                plateau[posFant2] = adv2;
-                aBouge++;
-
-            } else if (plateau[posFant2] + 10 == '*') {
-                posFant2 = posFant2 + 10;
-                plateau[posFant2] = adv2e;
-                aBouge++;
-
-            }
-
-
-
-            //va à gauche
-        } else if (randomAdv2 == 3 && posFant2 % 10 != 0 && posFant2 - 1 != posFant1) {
-            if (plateau[posFant2 - 1] == ' ') {
-                posFant2 = posFant2 - 1;
-                plateau[posFant2] = adv2;
-                aBouge++;
-
-            } else if (plateau[posFant2] - 1 == '*') {
-                posFant2 = posFant2 - 1;
-                plateau[posFant2] = adv2e;
-                aBouge++;
-
-            }
+                printf("abouge\n");
+                fflush(stdout);
+                break;
+            default:
+                break;
         }
     }
-
+    printf("out mvt f2\n");
+    fflush(stdout);
 }
 
 void Collisions() {
@@ -291,27 +273,35 @@ int main(int argc, char const *argv[]) {
                     if (testQuitter(tampon)) {
                         break; // on quitte la boucle
                     }
+                    printf("ccccc\n");
                 }
 
+                printf("jnkvnekrbv\n");
+                fflush(stdout);
+
                 if (nbRecu < 0) {
-                    printf("Erreur de réception");
+                    printf("Erreur de réception\n");
                 }
 
                 //modification de la position du joueur
-                //fflush(stdout);
-                pos = ' ';
-                scanf(" %c", &tampon[0]);
-                while (pos != 'z' && pos != 'q' && pos != 's' && pos != 'd') {
-                    printf("Veuillez entrer une direction valide \n");
-                    printf("Entrez une direction : \n");
-                    scanf(" %c", &pos);
-                }
+
+                pos = tampon[nbRecu-1];
+                printf("%s, %d", tampon, nbRecu);
+                fflush(stdout);
 
                 if (posJoueur % 10 != 0) {
-                    if (pos == 'q') posJoueur--;
+                    if (pos == 'q') {
+                        posJoueur--;
+                        printf("joie");
+                        fflush(stdout);
+                    }
                 }
                 if (posJoueur % 10 != 9) {
-                    if (pos == 'd') posJoueur++;
+                    if (pos == 'd') {
+                        posJoueur++;
+                        printf("pate\n");
+                        fflush(stdout);
+                    }
                 }
                 if (posJoueur > 9) {
                     if (pos == 'z') posJoueur = posJoueur - 10;
@@ -332,14 +322,23 @@ int main(int argc, char const *argv[]) {
                 //vie = tampon[0];
                 //send(fdSocketCommunication, tampon, strlen(tampon), 0);
 
-                tampon[nbRecu] = plateau[nbRecu];
+                printf("nouveau\n");
+                fflush(stdout);
+                printf("%c", plateau[4]);
+                fflush(stdout);
+                *tampon = *plateau;
 
                 if (testQuitter(tampon)) {
                     send(fdSocketCommunication, tampon, strlen(tampon), 0);
                     break; // on quitte la boucle
                 }
+                printf("avant d'envoyer\n");
+                fflush(stdout);
 
                 send(fdSocketCommunication, tampon, strlen(tampon), 0);
+
+                printf("%s\n", tampon);
+                fflush(stdout);
             }
 
             // determination du score avec presence ou non du bonus

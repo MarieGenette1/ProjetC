@@ -25,8 +25,14 @@ void videGrille(void) {
 void lireMessage(char tampon[]) {
     printf("Entrez une direction : \n");
     scanf("%s", tampon);
+    pos = *tampon;
+    printf("%s\n", &pos);  //ok
+    while (pos != 'z' && pos != 'q' && pos != 's' && pos != 'd') {
+        printf("Veuillez entrer une direction valide \n");
+        printf("Entrez une direction : \n");
+        scanf(" %c", &pos);
+    }
     strtok(tampon, "\n");
-    printf("%s\n", tampon);
 }
 
 void afficheGrille() {
@@ -149,23 +155,40 @@ int main(int argc, char const *argv[]) {
 
             lireMessage(tampon);
 
-            printf("pq ça va pas");
+            printf("pq ça va pas\n");
+            fflush(stdout);
 
             if (testQuitter(tampon)) {
-                printf("ça marche?");
+                printf("ça marche?\n");
+                fflush(stdout);
                 send(fdSocket, tampon, strlen(tampon), 0);
                 break; // on quitte la boucle
             }
 
             send(fdSocket, tampon, strlen(tampon), 0);
 
-            printf("ça marche pas");
+            printf("ça marche pas\n");
+            fflush(stdout);
         } else {
-            printf("hjfkfkf");
+            printf("hjfkfkf\n");
+            fflush(stdout);
+            fflush(stdin);
+            nbRecu = recv(fdSocket, tampon, strlen(tampon), 0); //on attend la réponse du serveur
 
-            nbRecu = recv(fdSocket, tampon, MAX_BUFFER, 0); //on attend la réponse du serveur
+            printf("cvbn\n");
+            fflush(stdout);
 
-            plateau[nbRecu] = tampon[nbRecu];
+            if (nbRecu > 0) {
+                printf("%s", tampon);
+                tampon[nbRecu] = 0;
+                printf("%s", tampon);
+                fflush(stdout);
+                plateau[nbRecu] = tampon[nbRecu];
+
+                if (testQuitter(tampon)) {
+                    break; // on quitte la boucle
+                }
+            }
 
             afficheGrille();
 
@@ -175,15 +198,6 @@ int main(int argc, char const *argv[]) {
         }
 
         tour++;
-
-        if (nbRecu > 0) {
-            tampon[nbRecu] = 0;
-            printf("Recu : %s\n", tampon);
-
-            if (testQuitter(tampon)) {
-                break; // on quitte la boucle
-            }
-        }
 
     }
 
