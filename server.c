@@ -16,7 +16,7 @@
 
 char plateau[60 + 1], nom[20];
 char joueur = 'C', pos, adv = 'O', adv2 = 'O', debut, fin;
-int vie, tour = 0, tourAdv, posJoueur, posFant1, posFant2, score, bonus, adv1e = '0', adv2e = '0', nbetoiles;
+int vie, tour = 0, tourAdv, posJoueur, posFant1, posFant2, score, bonus, adv1e = '0', adv2e = '0', nbetoiles, nbClients = 0;
 
 void videGrille(void) {
     for (int i = 0; i < 60; i++) {
@@ -230,6 +230,8 @@ int main(int argc, char const *argv[]) {
     char tampon[MAX_BUFFER];
     int nbRecu;
     int longueurAdresse;
+    int pid;
+    char *ip = inet_ntoa(coordonneesAppelant.sin_addr);
 
     fdSocketAttente = socket(PF_INET, SOCK_STREAM, 0);
 
@@ -238,21 +240,23 @@ int main(int argc, char const *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    //on prépare l'adresse d'attachement locale
+    // On prépare l’adresse d’attachement locale
     longueurAdresse = sizeof(struct sockaddr_in);
     memset(&coordonneesServeur, 0x00, longueurAdresse);
 
     coordonneesServeur.sin_family = PF_INET;
+    // toutes les interfaces locales disponibles
     coordonneesServeur.sin_addr.s_addr = htonl(INADDR_ANY);
+    // toutes les interfaces locales disponibles
     coordonneesServeur.sin_port = htons(PORT);
 
     if (bind(fdSocketAttente, (struct sockaddr *) &coordonneesServeur, sizeof(coordonneesServeur)) == -1) {
-        printf("erreur de bind \n");
+        printf("erreur de bind\n");
         exit(EXIT_FAILURE);
     }
 
     if (listen(fdSocketAttente, 5) == -1) {
-        printf("erreur de listen \n");
+        printf("erreur de listen\n");
         exit(EXIT_FAILURE);
     }
 
@@ -262,104 +266,114 @@ int main(int argc, char const *argv[]) {
 
     while (nbClients < MAX_CLIENTS) {
 
-
-        if ((fdSocketCommunication = accept(fdSocketAttente, (struct sockaddr *) &coordonneesAppelant, &tailleCoord)) ==
-            -1) {
-            printf("erreur accept\n");
+        if ((fdSocketCommunication = accept(fdSocketAttente, (struct sockaddr *) &coordonneesAppelant,
+                                            &tailleCoord)) == -1) {
+            printf("erreur de accept\n");
             exit(EXIT_FAILURE);
         }
 
-        int pid = fork();
-        char *ip = inet_ntoa(coordonneesAppelant.sin_addr);
+        printf("Joueur %s Connecté!\n", ip);
 
-        if (pid == 0) {
-
-            printf("Joueur %s Connecté!\n", ip);
-
-            if ((pid = fork()) == 0) {
-                close(fdSocketAttente);
-
-                while (1) {
-                    //on attend le message du client
-                    //la fonction recv est bloquante
-                    nbRecu = recv(fdSocketCommunication, tampon, MAX_BUFFER, 0);
-
-                    if (nbRecu < 0) {
-                        printf("Erreur de réception");
-                    }
-
-                    if (nbRecu > 0) {
-                        tampon[nbRecu] = 0;
-                        printf("Reçu: %s \n", tampon);
-                    }
-
-                    //modification de la position du joueur
-                    //fflush(stdout);
-                    pos = ' ';
-                    scanf(" %c", &tampon[0]);
-                    while (pos != 'z' && pos != 'q' && pos != 's' && pos != 'd') {
-                        printf("Veuillez entrer une direction valide \n");
-                        printf("Entrez une direction : \n");
-                        scanf(" %c", &pos);
-                    }
-
-                    if (posJoueur % 10 != 0) {
-                        if (pos == 'q') posJoueur--;
-                    }
-                    if (posJoueur % 10 != 9) {
-                        if (pos == 'd') posJoueur++;
-                    }
-                    if (posJoueur > 9) {
-                        if (pos == 'z') posJoueur = posJoueur - 10;
-                    }
-                    if (posJoueur < 50) {
-                        if (pos == 's') posJoueur = posJoueur + 10;
-                    }
-
-                    mouvementJoueur();
-                    mouvementFantome2();
-                    mouvementFantome1();
-
-                    //evaluation des points et de la mort eventuelle
-                    Collisions();
-
-                    tampon[nbRecu] = plateau[nbRecu];
-
-                    if (testQuitter(tampon)) {
-                        send(fdSocketCommunication, tampon, strlen(tampon), 0);
-                        break; // on quitte la boucle
-                    }
-
-                    send(fdSocketCommunication, tampon, strlen(tampon), 0);
-                }
-
-                // determination du score avec presence ou non du bonus
-                score = bonus + score;
-
-                // si non alors le joueur a perdu
-                // system("CLS");
-                if (bonus == 0) printf("\n\nLe Fantôme a été plus rusé que vous, %s... Vous avez perdu.\n\n", nom);
-
-                //si oui alors le joueur a gagne
-                if (bonus == 50) {
-                    // system("CLS");
-                    printf("\n\n%s vous avez atteint l'objectif. Vous remportez la victoire.\nVous etes acclame par votre public !\n\n",
-                           nom);
-                    printf("%s votre score est de : %d\n\n", nom, score);
-
-                    close(fdSocketCommunication);
-                    exit(EXIT_SUCCESS);
-                }
-                nbClients++;
-            }
+        if ((pid = fork()) == 0) {
             close(fdSocketAttente);
 
-            for (int i = 0; i < MAX_CLIENTS; i++) {
-                wait(NULL);
+            while (1) {
+                //tampon[0] = 1;
+                //send(fdSocketCommunication, tampon, strlen(tampon), 0);
+                //on attend le message du client
+                //la fonction recv est bloquante<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                nbRecu = recv(fdSocketCommunication, tampon, MAX_BUFFER, 0);
+
+                if (nbRecu > 0) {
+                    tampon[nbRecu] = 0;
+                    printf("Recu : %s\n", tampon);
+
+                    if (testQuitter(tampon)) {
+                        break; // on quitte la boucle
+                    }
+                }
+
+                if (nbRecu < 0) {
+                    printf("Erreur de réception");
+                }
+
+                //modification de la position du joueur
+                //fflush(stdout);
+                pos = ' ';
+                scanf(" %c", &tampon[0]);
+                while (pos != 'z' && pos != 'q' && pos != 's' && pos != 'd') {
+                    printf("Veuillez entrer une direction valide \n");
+                    printf("Entrez une direction : \n");
+                    scanf(" %c", &pos);
+                }
+
+                if (posJoueur % 10 != 0) {
+                    if (pos == 'q') posJoueur--;
+                }
+                if (posJoueur % 10 != 9) {
+                    if (pos == 'd') posJoueur++;
+                }
+                if (posJoueur > 9) {
+                    if (pos == 'z') posJoueur = posJoueur - 10;
+                }
+                if (posJoueur < 50) {
+                    if (pos == 's') posJoueur = posJoueur + 10;
+                }
+
+                mouvementJoueur();
+                //vie = tampon[0];
+                //send(fdSocketCommunication, tampon, strlen(tampon), 0);
+
+                mouvementFantome2();
+                mouvementFantome1();
+
+                //evaluation des points et de la mort eventuelle
+                Collisions();
+                //vie = tampon[0];
+                //send(fdSocketCommunication, tampon, strlen(tampon), 0);
+
+                tampon[nbRecu] = plateau[nbRecu];
+
+                if (testQuitter(tampon)) {
+                    send(fdSocketCommunication, tampon, strlen(tampon), 0);
+                    break; // on quitte la boucle
+                }
+
+                send(fdSocketCommunication, tampon, strlen(tampon), 0);
             }
 
-            return EXIT_SUCCESS;
+            // determination du score avec presence ou non du bonus
+            //core = bonus + score;
+
+            //core = tampon[0];
+            //onus = tampon[1];
+            //end(fdSocketCommunication, tampon, strlen(tampon), 0);
+
+            // si non alors le joueur a perdu
+            // system("CLS");
+            //f (bonus == 0) printf("\n\nLe Fantôme a été plus rusé que vous, %s... Vous avez perdu.\n\n", nom);
+
+            //si oui alors le joueur a gagne
+            //f (bonus == 50) {
+            //   // system("CLS");
+            //   printf("\n\n%s vous avez atteint l'objectif. Vous remportez la victoire.\nVous êtes acclamé par votre public !\n\n",
+            //          nom);
+            //   printf("%s votre score est de : %d\n\n", nom, score);
+
+            exit(EXIT_SUCCESS);
         }
 
+        nbClients++;
+
     }
+
+    close(fdSocketCommunication);
+    close(fdSocketAttente);
+
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        wait(NULL);
+    }
+
+    return EXIT_SUCCESS;
 }
+
